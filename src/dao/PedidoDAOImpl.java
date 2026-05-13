@@ -35,7 +35,6 @@ public class PedidoDAOImpl implements PedidoDAO {
 
             // Se ejecuta la inserción del pedido en la base de datos
             ps.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -54,7 +53,6 @@ public class PedidoDAOImpl implements PedidoDAO {
 
             // Se ejecuta el borrado
             ps.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -85,7 +83,6 @@ public class PedidoDAOImpl implements PedidoDAO {
 
             // Se ejecuta la actualización
             ps.executeUpdate();
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -120,11 +117,9 @@ public class PedidoDAOImpl implements PedidoDAO {
 
                 return p;
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
@@ -151,11 +146,9 @@ public class PedidoDAOImpl implements PedidoDAO {
                 );
                 lista.add(pedido);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return lista;
     }
 
@@ -173,27 +166,20 @@ public class PedidoDAOImpl implements PedidoDAO {
             // Se recorren solo los pedidos abiertos
             while (rs.next()) {
 
-                Pedido p = new Pedido();
-
-                p.setId(rs.getInt("id"));
-                p.setClienteId(rs.getInt("cliente_id"));
-
-                p.setMetodoPago(MetodoPago.valueOf(rs.getString("metodo_pago")));
-                p.setEstado(Estado.valueOf(rs.getString("estado")));
-
-                p.setPrecio(rs.getDouble("precio_total"));
-
-                lista.add(p);
+                Pedido pedido = cargarPedido(
+                    rs.getInt("id"),
+                    rs.getDouble("precio"),
+                    rs.getString("metodo_pago"),
+                    rs.getString("estado"),
+                    rs.getInt("cliente_id")
+                );
+                lista.add(pedido);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return lista;
     }
-
-    
 
     private Pedido cargarPedido(int id, double precio, String metodoPago, String estado, int clienteId) {
         Pedido p = new Pedido();
