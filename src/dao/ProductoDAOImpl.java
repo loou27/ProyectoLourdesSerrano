@@ -81,6 +81,38 @@ public class ProductoDAOImpl implements ProductoDAO {
     }
 
     @Override
+    public Producto buscarProducto(int id) throws Exception {
+        String sql = "SELECT * FROM producto WHERE id = ?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            // Si encuentra el producto lo devuelve
+            if (rs.next()) {
+                Producto producto = cargarProducto(
+                // Se asignan los valores de cada columna al objeto Producto
+                rs.getInt("id"),
+                rs.getString("nombre"),
+                rs.getInt("cantidad"),
+                rs.getDouble("precio"),
+                rs.getString("tipo")
+                );
+
+                // Se devuelve el producto
+                return producto;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new Exception("Producto no encontrado.");
+    }
+
+    @Override
     public List<Producto> listarProductos() {
 
         List<Producto> lista = new ArrayList<>();
