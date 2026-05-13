@@ -89,6 +89,8 @@ public class ClienteDAOImpl implements ClienteDAO {
 
         String sql = "SELECT * FROM cliente";
 
+        System.out.println("Debug: listarClientes");
+
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
