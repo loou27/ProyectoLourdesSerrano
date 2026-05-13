@@ -94,19 +94,17 @@ public class ProductoDAOImpl implements ProductoDAO {
             // Se recorren los resultados obtenidos de la base de datos
             while (rs.next()) {
 
-                Producto p = new Producto();
-
+                Producto producto = cargarProducto(
                 // Se asignan los valores de cada columna al objeto Producto
-                p.setId(rs.getInt("id"));
-                p.setNombre(rs.getString("nombre"));
-                p.setPrecio(rs.getDouble("precio"));
-                p.setCantidad(rs.getInt("cantidad"));
-
-                // Conversión de String a enum
-                p.setTipo(TipoProducto.valueOf(rs.getString("tipo")));
+                rs.getInt("id"),
+                rs.getString("nombre"),
+                rs.getInt("cantidad"),
+                rs.getDouble("precio"),
+                rs.getString("tipo")
+                );
 
                 // Se añade el producto a la lista final
-                lista.add(p);
+                lista.add(producto);
             }
 
         } catch (SQLException e) {
@@ -115,5 +113,17 @@ public class ProductoDAOImpl implements ProductoDAO {
 
         // Se devuelve la lista completa de productos
         return lista;
+    }
+
+    private Producto cargarProducto(int id, String nombre, int cantidad, double precio, String tipoProducto) {
+        Producto p = new Producto();
+
+        p.setId(id);
+        p.setNombre(nombre);
+        p.setCantidad(cantidad);
+        p.setPrecio(precio);
+        p.setTipo(TipoProducto.valueOf(tipoProducto.toUpperCase()));
+
+        return p;
     }
 }
