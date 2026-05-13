@@ -34,7 +34,6 @@ public class Pedido {
         this.id = id;
     }
 
-    // ESTE ES EL CAMBIO IMPORTANTE: antes DAO usaba getPrecioTotal()
     public double getPrecioTotal() {
         return precio;
     }
@@ -73,5 +72,5 @@ public class Pedido {
 
     public void setClienteId(int clienteId) {
         this.clienteId = clienteId;
-    }
+    }    
 }

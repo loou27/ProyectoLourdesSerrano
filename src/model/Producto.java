@@ -64,4 +64,9 @@ public class Producto {
     public void setTipo(TipoProducto tipoProducto) {
         this.tipoProducto = tipoProducto;
     }
+
+    @Override
+    public String toString() {
+        return this.getId() + " - " + this.getNombre() + " - " + this.getPrecio() + " euros - " + this.getCantidad() + " unidades";
+    } 
 }
