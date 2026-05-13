@@ -1,9 +1,7 @@
 package src.dao;
 
 import src.db.ConexionDB;
-import src.model.Pedido;
-import src.model.MetodoPago;
-import src.model.Estado;
+import src.model.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,7 +12,7 @@ public class PedidoDAOImpl implements PedidoDAO {
     @Override
     public void añadirPedido(Pedido pedido) {
 
-        String sql = "INSERT INTO pedido(cliente_id, metodo_pago, precio_total, estado) VALUES (?,?,?,?)";
+        String sql = "INSERT INTO pedido(cliente_id, estado) VALUES (?,?)";
 
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -23,13 +21,10 @@ public class PedidoDAOImpl implements PedidoDAO {
             ps.setInt(1, pedido.getClienteId());
 
             // Se convierte el enum MetodoPago a String para guardarlo en la base de datos
-            ps.setString(2, pedido.getMetodoPago().name());
-
-            // Se asigna el precio total del pedido
-            ps.setDouble(3, pedido.getPrecio());
+           // ps.setString(2, pedido.getMetodoPago().name());
 
             // Se convierte el enum Estado a String
-            ps.setString(4, pedido.getEstado().name());
+            ps.setString(2, pedido.getEstado().name());
 
             // Se ejecuta la inserción del pedido en la base de datos
             ps.executeUpdate();
@@ -137,11 +132,12 @@ public class PedidoDAOImpl implements PedidoDAO {
 
                 Pedido pedido = cargarPedido(
                     rs.getInt("id"),
-                    rs.getDouble("precio"),
+                    sumarPrecioProductos(rs.getInt("id")),
                     rs.getString("metodo_pago"),
                     rs.getString("estado"),
                     rs.getInt("cliente_id")
                 );
+
                 lista.add(pedido);
             }
         } catch (SQLException e) {
@@ -150,33 +146,27 @@ public class PedidoDAOImpl implements PedidoDAO {
         return lista;
     }
 
-    @Override
-    public List<Pedido> listarPedidosAbiertos() {
-
-        List<Pedido> lista = new ArrayList<>();
-
-        String sql = "SELECT * FROM pedido WHERE estado='ABIERTO'";
-
+    private double sumarPrecioProductos(int pedidoId) {
+        String sql = "SELECT pp.*, " + 
+                    "        p.precio * pp.cantidad AS precio " +
+                    "FROM pedido_producto pp " +
+                    "LEFT JOIN producto p ON pp.producto_id = p.id " + 
+                    "WHERE pp.pedido_id = ?";
+        double precioTotal = 0;
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+             ps.setInt(1, pedidoId);
+             ResultSet rs = ps.executeQuery();
 
-            // Se recorren solo los pedidos abiertos
-            while (rs.next()) {
-
-                Pedido pedido = cargarPedido(
-                    rs.getInt("id"),
-                    rs.getDouble("precio"),
-                    rs.getString("metodo_pago"),
-                    rs.getString("estado"),
-                    rs.getInt("cliente_id")
-                );
-                lista.add(pedido);
+             while (rs.next()) {
+                precioTotal += rs.getDouble("precio");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return lista;
+
+        return precioTotal;
     }
 
     private Pedido cargarPedido(int id, double precio, String metodoPago, String estado, int clienteId) {
@@ -184,7 +174,11 @@ public class PedidoDAOImpl implements PedidoDAO {
 
         p.setId(id);
         p.setPrecio(precio);
-        p.setMetodoPago(MetodoPago.valueOf(metodoPago.toUpperCase()));
+
+        if(metodoPago != null){
+            p.setMetodoPago(MetodoPago.valueOf(metodoPago.toUpperCase()));
+        }
+
         p.setEstado(Estado.valueOf(estado.toUpperCase()));
         p.setClienteId(clienteId);
 
