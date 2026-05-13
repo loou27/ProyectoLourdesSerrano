@@ -2,9 +2,7 @@ package src.dao;
 
 import src.db.ConexionDB;
 import src.model.Pedido;
-import src.model.TipoCliente;
 import src.model.MetodoPago;
-import src.model.Cliente;
 import src.model.Estado;
 
 import java.sql.*;
