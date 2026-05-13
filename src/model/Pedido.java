@@ -72,5 +72,12 @@ public class Pedido {
 
     public void setClienteId(int clienteId) {
         this.clienteId = clienteId;
+    }
+
+    @Override
+    public String toString() {
+        return this.getId() + " - Cliente " + this.getClienteId() + " - " + this.getPrecio() + " euros";
     }    
+
+    
 }
