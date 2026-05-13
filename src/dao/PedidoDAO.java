@@ -14,5 +14,4 @@ public interface PedidoDAO {
 
     List<Pedido> listarPedidos();
 
-    List<Pedido> listarPedidosAbiertos();
 }
