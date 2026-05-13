@@ -10,5 +10,7 @@ public interface ProductoDAO {
 
     void modificarProducto(Producto producto);
 
+    Producto buscarProducto(int id) throws Exception;
+
     List<Producto> listarProductos();
 }
