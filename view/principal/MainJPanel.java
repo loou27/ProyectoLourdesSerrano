@@ -1,12 +1,20 @@
-package view;
+package view.principal;
+
+import view.comun.AbstractPanelBotones;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
 
-public class MainJPanel extends AbstractJPanelButtons {
+public class MainJPanel extends AbstractPanelBotones {
     public MainJPanel(JPanel panel) {
         super(panel);
+    }
+
+    @Override
+    protected boolean mostrarBotonAñadir() {
+        return false;
     }
 
     @Override
@@ -20,6 +28,7 @@ public class MainJPanel extends AbstractJPanelButtons {
 
         botones.add("Clientes");
         botones.add("Productos");
+        botones.add("Pedidos");
 
         return botones;
     }

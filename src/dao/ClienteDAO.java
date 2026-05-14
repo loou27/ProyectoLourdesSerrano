@@ -10,5 +10,9 @@ public interface ClienteDAO {
 
     Cliente buscarCliente(String nombre);
 
+    Cliente buscarClientePorId(int id);
+
+    void modificarCliente(Cliente cliente);
+
     List<Cliente> listarClientes();
 }

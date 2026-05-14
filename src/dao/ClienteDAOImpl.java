@@ -83,6 +83,50 @@ public class ClienteDAOImpl implements ClienteDAO {
     }
 
     @Override
+    public Cliente buscarClientePorId(int id) {
+        String sql = "SELECT * FROM cliente WHERE id=?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return cargarCliente(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("tipo")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public void modificarCliente(Cliente cliente) {
+
+        String sql = "UPDATE cliente SET nombre=?, tipo=? WHERE id=?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, cliente.getNombre());
+            ps.setString(2, cliente.getTipoCliente().name());
+            ps.setInt(3, cliente.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public List<Cliente> listarClientes() {
 
         List<Cliente> lista = new ArrayList<>();
