@@ -76,7 +76,6 @@ public class Main {
         } while (opcion != 0);
     }
 
-
     // MENU PRODUCTOS
     public static void menuProductos() {
         int opcion = -1;

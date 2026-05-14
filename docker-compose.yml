@@ -1,0 +1,12 @@
+services:
+  database:
+    image: mysql:8.0
+    container_name: mysql-java-server
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: cafeteria_ayala
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql

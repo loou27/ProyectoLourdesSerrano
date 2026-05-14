@@ -16,6 +16,7 @@ public abstract class AbstractJPanelButtons extends JPanel implements ActionList
     protected JPanel jPanel;
 
     protected abstract String getTitulo();
+
     protected abstract List<String> getBotones();
 
     public AbstractJPanelButtons(JPanel panel) {
@@ -31,19 +32,18 @@ public abstract class AbstractJPanelButtons extends JPanel implements ActionList
 
         cabecera.add(titulo, BorderLayout.NORTH);
 
-        cabecera.add(getJButton( "Menu principal"), BorderLayout.WEST);
+        cabecera.add(getJButton("Menu principal"), BorderLayout.WEST);
 
         add(cabecera, BorderLayout.NORTH);
 
-        //Creamos grid y botones
+        // Creamos grid y botones
         JPanel botonesGrid = new JPanel();
         botonesGrid.setLayout(new GridBagLayout());
-
 
         for (String boton : this.getBotones()) {
             botonesGrid.add(getJButton(boton));
         }
-        
+
         add(botonesGrid, BorderLayout.CENTER);
     }
 
@@ -64,13 +64,11 @@ public abstract class AbstractJPanelButtons extends JPanel implements ActionList
 
         return button;
     }
-    
 
     public void actionPerformed(ActionEvent e) {
-        System.out.println(e.getActionCommand());    
+        System.out.println(e.getActionCommand());
         CardLayout cardLayout = (CardLayout) this.jPanel.getLayout();
 
         cardLayout.show(this.jPanel, e.getActionCommand());
     }
-
 }
