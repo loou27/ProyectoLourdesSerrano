@@ -8,7 +8,7 @@ public interface PedidoDAO {
     /** @return id generado o -1 si falla */
     int añadirPedido(Pedido pedido);
 
-    void borrarPedido(int id);https://github.com/loou27/ProyectoLourdesSerrano/pull/2/conflict?name=src%252Fdao%252FPedidoDAO.java&ancestor_oid=bbefa25d19c8151376f76c6043653e4d3d2dca82&base_oid=e6c5f3577985c677494b3aece545e28787947c54&head_oid=0ea89f4f781cc9c74076a950bd0e084663c388fd
+    void borrarPedido(int id);
 
     void modificarPedido(Pedido pedido);
 
