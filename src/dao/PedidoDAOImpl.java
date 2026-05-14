@@ -10,27 +10,28 @@ import java.util.List;
 public class PedidoDAOImpl implements PedidoDAO {
 
     @Override
-    public void añadirPedido(Pedido pedido) {
+    public int añadirPedido(Pedido pedido) {
 
-        String sql = "INSERT INTO pedido(cliente_id, estado) VALUES (?,?)";
+        String sql = "INSERT INTO pedido(cliente_id, estado, precio_total) VALUES (?,?,?)";
 
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            // Se asigna el id del cliente asociado al pedido
             ps.setInt(1, pedido.getClienteId());
-
-            // Se convierte el enum MetodoPago a String para guardarlo en la base de datos
-           // ps.setString(2, pedido.getMetodoPago().name());
-
-            // Se convierte el enum Estado a String
             ps.setString(2, pedido.getEstado().name());
+            ps.setDouble(3, 0);
 
-            // Se ejecuta la inserción del pedido en la base de datos
             ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return -1;
     }
 
     @Override
@@ -41,10 +42,8 @@ public class PedidoDAOImpl implements PedidoDAO {
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            // Se indica el id del pedido a eliminar
             ps.setInt(1, id);
 
-            // Se ejecuta el borrado
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -59,22 +58,18 @@ public class PedidoDAOImpl implements PedidoDAO {
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            // Se actualiza el cliente asociado al pedido
             ps.setInt(1, pedido.getClienteId());
 
-            // Se actualiza el método de pago
-            ps.setString(2, pedido.getMetodoPago().name());
+            if (pedido.getMetodoPago() != null) {
+                ps.setString(2, pedido.getMetodoPago().name());
+            } else {
+                ps.setNull(2, Types.VARCHAR);
+            }
 
-            // Se actualiza el precio del pedido
             ps.setDouble(3, pedido.getPrecio());
-
-            // Se actualiza el estado del pedido
             ps.setString(4, pedido.getEstado().name());
-
-            // Se indica qué pedido se modifica
             ps.setInt(5, pedido.getId());
 
-            // Se ejecuta la actualización
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -89,31 +84,49 @@ public class PedidoDAOImpl implements PedidoDAO {
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            // Se le asigna el nombre al SELECT
             ps.setString(1, nombre);
 
             ResultSet rs = ps.executeQuery();
 
-            // Si existe el pedido, se construye el objeto
             if (rs.next()) {
 
-                Pedido p = new Pedido();
-
-                p.setId(rs.getInt("id"));
-                p.setClienteId(rs.getInt("cliente_id"));
-
-                // Se convierte el String de la base de datos a enum
-                p.setMetodoPago(MetodoPago.valueOf(rs.getString("metodo_pago")));
-                p.setEstado(Estado.valueOf(rs.getString("estado")));
-
-                p.setPrecio(rs.getDouble("precio_total"));
-
-                return p;
+                return leerPedidoDesdeResultSet(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public Pedido buscarPedidoPorId(int id) {
+        String sql = "SELECT * FROM pedido WHERE id=?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return leerPedidoDesdeResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Pedido leerPedidoDesdeResultSet(ResultSet rs) throws SQLException {
+        int pid = rs.getInt("id");
+        return cargarPedido(
+            pid,
+            sumarPrecioProductos(pid),
+            rs.getString("metodo_pago"),
+            rs.getString("estado"),
+            rs.getInt("cliente_id")
+        );
     }
 
     @Override
@@ -127,16 +140,9 @@ public class PedidoDAOImpl implements PedidoDAO {
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            // Se recorren todos los pedidos de la base de datos
             while (rs.next()) {
 
-                Pedido pedido = cargarPedido(
-                    rs.getInt("id"),
-                    sumarPrecioProductos(rs.getInt("id")),
-                    rs.getString("metodo_pago"),
-                    rs.getString("estado"),
-                    rs.getInt("cliente_id")
-                );
+                Pedido pedido = leerPedidoDesdeResultSet(rs);
 
                 lista.add(pedido);
             }
@@ -146,16 +152,70 @@ public class PedidoDAOImpl implements PedidoDAO {
         return lista;
     }
 
-    private double sumarPrecioProductos(int pedidoId) {
-        String sql = "SELECT pp.*, " + 
+    @Override
+    public List<Pedido> listarPedidosAbiertos() {
+        List<Pedido> lista = new ArrayList<>();
+
+        String sql = "SELECT * FROM pedido WHERE estado = 'ABIERTO' ORDER BY id";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(leerPedidoDesdeResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    @Override
+    public void actualizarPrecioTotalPedido(int pedidoId) {
+        double total = sumarPrecioProductos(pedidoId);
+        String sql = "UPDATE pedido SET precio_total=? WHERE id=?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setDouble(1, total);
+            ps.setInt(2, pedidoId);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void cerrarPedido(int pedidoId, MetodoPago metodoPago) {
+        actualizarPrecioTotalPedido(pedidoId);
+        String sql = "UPDATE pedido SET estado=?, metodo_pago=? WHERE id=?";
+
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, Estado.CERRADO.name());
+            ps.setString(2, metodoPago.name());
+            ps.setInt(3, pedidoId);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    double sumarPrecioProductos(int pedidoId) {
+        String sql = "SELECT pp.*, " +
                     "        p.precio * pp.cantidad AS precio " +
                     "FROM pedido_producto pp " +
-                    "LEFT JOIN producto p ON pp.producto_id = p.id " + 
+                    "LEFT JOIN producto p ON pp.producto_id = p.id " +
                     "WHERE pp.pedido_id = ?";
         double precioTotal = 0;
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            
+
              ps.setInt(1, pedidoId);
              ResultSet rs = ps.executeQuery();
 
@@ -175,7 +235,7 @@ public class PedidoDAOImpl implements PedidoDAO {
         p.setId(id);
         p.setPrecio(precio);
 
-        if(metodoPago != null){
+        if (metodoPago != null) {
             p.setMetodoPago(MetodoPago.valueOf(metodoPago.toUpperCase()));
         }
 
@@ -185,4 +245,3 @@ public class PedidoDAOImpl implements PedidoDAO {
         return p;
     }
 }
-

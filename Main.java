@@ -76,7 +76,6 @@ public class Main {
         } while (opcion != 0);
     }
 
-
     // MENU PRODUCTOS
     public static void menuProductos() {
         int opcion = -1;
@@ -116,7 +115,6 @@ public class Main {
             System.out.println("1. Añadir pedido");
             System.out.println("2. Buscar pedido");
             System.out.println("3. Listar pedidos");
-            System.out.println("4. Listar pedidos abiertos");
             System.out.println("5. Modificar pedido");
             System.out.println("6. Borrar pedido");
             System.out.println("0. Volver");
@@ -132,9 +130,6 @@ public class Main {
                     break;
                 case 3:
                     listarPedidos();
-                    break;
-                case 4:
-                    listarPedidosAbiertos();
                     break;
                 case 5:
                     modificarPedido();
@@ -282,14 +277,6 @@ public class Main {
 
         for (Pedido p : lista) {
             System.out.println(p.getId() + " - Cliente " + p.getClienteId() + " - " + p.getPrecio() + "€");
-        }
-    }
-
-    public static void listarPedidosAbiertos() {
-        List<Pedido> lista = pedidoDAO.listarPedidosAbiertos();
-
-        for (Pedido p : lista) {
-            System.out.println(p.getId() + " - " + p.getPrecio() + "€");
         }
     }
 
